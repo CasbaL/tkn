@@ -1,0 +1,32 @@
+{
+  "name": "tkn",
+  "version": "0.1.0",
+  "description": "Roughly estimate the total token count of a repository",
+  "main": "dist/index.js",
+  "bin": {
+    "tkn": "dist/index.js"
+  },
+  "scripts": {
+    "artifacts": "napi artifacts",
+    "build": "napi build --platform --release --package tkn-core && cp crates/tkn-core/tkn-core.*.node . && tsc",
+    "build:debug": "napi build --platform --package tkn-core && cp crates/tkn-core/tkn-core.*.node . && tsc",
+    "tsc": "tsc"
+  },
+  "napi": {
+    "binaryName": "tkn-core",
+    "targets": [
+      "x86_64-apple-darwin",
+      "aarch64-apple-darwin"
+    ]
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^3.0.0",
+    "@types/node": "^25.6.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "cli-table3": "^0.6.3",
+    "commander": "^12.0.0"
+  }
+}
