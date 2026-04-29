@@ -3,11 +3,12 @@ import Table from 'cli-table3';
 import type { ScanResult } from './types.js';
 
 const CONTEXT_WINDOWS: { name: string; tokens: number }[] = [
-  { name: 'GPT-4o', tokens: 128_000 },
-  { name: 'Claude 3.5', tokens: 200_000 },
-  { name: 'DeepSeek V3', tokens: 128_000 },
-  { name: 'Gemini 1.5', tokens: 2_000_000 },
-  { name: 'Qwen 2.5', tokens: 128_000 },
+  { name: 'GPT-5.5', tokens: 1_000_000 },
+  { name: 'GPT-5.5 Codex', tokens: 400_000 },
+  { name: 'Claude 4.7 Opus', tokens: 500_000 },
+  { name: 'Gemini 3.1 Pro', tokens: 2_000_000 },
+  { name: 'DeepSeek V4 Pro', tokens: 256_000 },
+  { name: 'Llama 4.0', tokens: 128_000 },
 ];
 
 const LARGE_FILE_THRESHOLD = 2000;
@@ -58,14 +59,14 @@ export function printTable(result: ScanResult): void {
   // Summary
   console.log(
     chalk.bold(`  Total: ${chalk.cyan(formatNumber(result.totalTokens))} tokens`) +
-      chalk.dim(` | ${result.totalFiles} files | ${formatBytes(result.totalBytes)}`),
+      chalk.dim(` | ${formatNumber(result.totalLines)} lines | ${result.totalFiles} files | ${formatBytes(result.totalBytes)}`),
   );
   console.log();
 
   // By Category
   if (result.byCategory.length > 0) {
     console.log(chalk.bold('  By Category:'));
-    const catTable = makeTable(['Category', 'Files', 'Tokens', 'Size', '']);
+    const catTable = makeTable(['Category', 'Files', 'Lines', 'Tokens', 'Size', '']);
 
     const catLabels: Record<string, string> = {
       logic: chalk.green('Logic'),
@@ -78,6 +79,7 @@ export function printTable(result: ScanResult): void {
       catTable.push([
         catLabels[cat.category] ?? cat.category,
         formatNumber(cat.fileCount),
+        formatNumber(cat.lineCount),
         formatNumber(cat.tokenCount),
         formatBytes(cat.byteCount),
         bar(ratio) + chalk.dim(` ${Math.round(ratio * 100)}%`),
@@ -91,13 +93,14 @@ export function printTable(result: ScanResult): void {
   // By Extension (top 10)
   if (result.byExtension.length > 0) {
     console.log(chalk.bold('  By Extension:'));
-    const extTable = makeTable(['Extension', 'Files', 'Tokens', 'Size']);
+    const extTable = makeTable(['Extension', 'Files', 'Lines', 'Tokens', 'Size']);
     const top = result.byExtension.slice(0, 10);
 
     for (const ext of top) {
       extTable.push([
         ext.extension,
         formatNumber(ext.fileCount),
+        formatNumber(ext.lineCount),
         formatNumber(ext.tokenCount),
         formatBytes(ext.byteCount),
       ]);
@@ -111,12 +114,13 @@ export function printTable(result: ScanResult): void {
   if (result.files.length > 0) {
     const top = result.files.slice(0, 10);
     console.log(chalk.bold(`  Top ${top.length} Files:`));
-    const fileTable = makeTable(['File', 'Tokens', 'Size']);
+    const fileTable = makeTable(['File', 'Lines', 'Tokens', 'Size']);
 
     for (const file of top) {
       const flag = file.tokens > LARGE_FILE_THRESHOLD ? ' \u{1F6A9}' : '';
       fileTable.push([
         file.path + flag,
+        formatNumber(file.lines),
         formatNumber(file.tokens),
         formatBytes(file.bytes),
       ]);

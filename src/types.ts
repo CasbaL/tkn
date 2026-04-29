@@ -11,6 +11,7 @@ export interface FileStat {
   path: string;
   tokens: number;
   bytes: number;
+  lines: number;
   category: 'logic' | 'config' | 'docs';
 }
 
@@ -19,6 +20,7 @@ export interface ExtensionStat {
   fileCount: number;
   tokenCount: number;
   byteCount: number;
+  lineCount: number;
 }
 
 export interface CategoryStat {
@@ -26,12 +28,14 @@ export interface CategoryStat {
   fileCount: number;
   tokenCount: number;
   byteCount: number;
+  lineCount: number;
 }
 
 export interface ScanResult {
   totalTokens: number;
   totalFiles: number;
   totalBytes: number;
+  totalLines: number;
   byExtension: ExtensionStat[];
   byCategory: CategoryStat[];
   files: FileStat[];

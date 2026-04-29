@@ -26,6 +26,14 @@ fn classify(ext: &str) -> &'static str {
     }
 }
 
+fn count_lines(text: &str) -> i32 {
+    if text.is_empty() {
+        0
+    } else {
+        text.lines().count() as i32
+    }
+}
+
 #[napi(object)]
 pub struct ScanOptions {
     pub include: Vec<String>,
@@ -41,6 +49,7 @@ pub struct FileStat {
     pub path: String,
     pub tokens: i64,
     pub bytes: i64,
+    pub lines: i32,
     pub category: String,
 }
 
@@ -50,6 +59,7 @@ pub struct ExtensionStat {
     pub file_count: i32,
     pub token_count: i64,
     pub byte_count: i64,
+    pub line_count: i32,
 }
 
 #[napi(object)]
@@ -58,6 +68,7 @@ pub struct CategoryStat {
     pub file_count: i32,
     pub token_count: i64,
     pub byte_count: i64,
+    pub line_count: i32,
 }
 
 #[napi(object)]
@@ -65,6 +76,7 @@ pub struct ScanResult {
     pub total_tokens: i64,
     pub total_files: i32,
     pub total_bytes: i64,
+    pub total_lines: i32,
     pub by_extension: Vec<ExtensionStat>,
     pub by_category: Vec<CategoryStat>,
     pub files: Vec<FileStat>,
@@ -91,6 +103,9 @@ fn resolve_bpe(options: &ScanOptions) -> Result<tiktoken_rs::CoreBPE> {
     }
 }
 
+// (file_count, token_count, byte_count, line_count)
+type StatTuple = (i32, i64, i64, i32);
+
 #[napi]
 pub fn scan_and_count(root: String, options: ScanOptions) -> Result<ScanResult> {
     let files = scanner::scan(&root, &options)
@@ -99,9 +114,9 @@ pub fn scan_and_count(root: String, options: ScanOptions) -> Result<ScanResult> 
     let bpe = resolve_bpe(&options)?;
 
     let mut file_stats: Vec<FileStat> = Vec::new();
-    let mut ext_map: std::collections::HashMap<String, (i32, i64, i64)> =
+    let mut ext_map: std::collections::HashMap<String, StatTuple> =
         std::collections::HashMap::new();
-    let mut cat_map: std::collections::HashMap<String, (i32, i64, i64)> =
+    let mut cat_map: std::collections::HashMap<String, StatTuple> =
         std::collections::HashMap::new();
 
     for file_path in &files {
@@ -117,6 +132,7 @@ pub fn scan_and_count(root: String, options: ScanOptions) -> Result<ScanResult> 
 
         let tokens = bpe.encode_with_special_tokens(text).len() as i64;
         let bytes = content.len() as i64;
+        let lines = count_lines(text);
 
         let relative = file_path
             .strip_prefix(&root)
@@ -133,54 +149,56 @@ pub fn scan_and_count(root: String, options: ScanOptions) -> Result<ScanResult> 
 
         let category = classify(&ext).to_string();
 
-        let ext_entry = ext_map.entry(ext.clone()).or_insert((0, 0, 0));
+        let ext_entry = ext_map.entry(ext.clone()).or_insert((0, 0, 0, 0));
         ext_entry.0 += 1;
         ext_entry.1 += tokens;
         ext_entry.2 += bytes;
+        ext_entry.3 += lines;
 
-        let cat_entry = cat_map.entry(category.clone()).or_insert((0, 0, 0));
+        let cat_entry = cat_map.entry(category.clone()).or_insert((0, 0, 0, 0));
         cat_entry.0 += 1;
         cat_entry.1 += tokens;
         cat_entry.2 += bytes;
+        cat_entry.3 += lines;
 
         file_stats.push(FileStat {
             path: relative,
             tokens,
             bytes,
+            lines,
             category,
         });
     }
 
     let total_tokens: i64 = file_stats.iter().map(|f| f.tokens).sum();
     let total_bytes: i64 = file_stats.iter().map(|f| f.bytes).sum();
+    let total_lines: i32 = file_stats.iter().map(|f| f.lines).sum();
     let total_files = file_stats.len() as i32;
 
     let mut by_extension: Vec<ExtensionStat> = ext_map
         .into_iter()
-        .map(|(ext, (count, tokens, bytes))| ExtensionStat {
+        .map(|(ext, (count, tokens, bytes, lines))| ExtensionStat {
             extension: if ext.is_empty() { "(none)".to_string() } else { format!(".{}", ext) },
             file_count: count,
             token_count: tokens,
             byte_count: bytes,
+            line_count: lines,
         })
         .collect();
 
-    let mut by_category: Vec<CategoryStat> = vec![
-        ("logic", 0, 0, 0),
-        ("config", 0, 0, 0),
-        ("docs", 0, 0, 0),
-    ]
-    .into_iter()
-    .map(|(cat, ..)| {
-        let (count, tokens, bytes) = cat_map.remove(cat).unwrap_or((0, 0, 0));
-        CategoryStat {
-            category: cat.to_string(),
-            file_count: count,
-            token_count: tokens,
-            byte_count: bytes,
-        }
-    })
-    .collect();
+    let mut by_category: Vec<CategoryStat> = vec!["logic", "config", "docs"]
+        .into_iter()
+        .map(|cat| {
+            let (count, tokens, bytes, lines) = cat_map.remove(cat).unwrap_or((0, 0, 0, 0));
+            CategoryStat {
+                category: cat.to_string(),
+                file_count: count,
+                token_count: tokens,
+                byte_count: bytes,
+                line_count: lines,
+            }
+        })
+        .collect();
 
     by_extension.sort_by(|a, b| b.token_count.cmp(&a.token_count));
     by_category.sort_by(|a, b| b.token_count.cmp(&a.token_count));
@@ -190,6 +208,7 @@ pub fn scan_and_count(root: String, options: ScanOptions) -> Result<ScanResult> 
         total_tokens,
         total_files,
         total_bytes,
+        total_lines,
         by_extension,
         by_category,
         files: file_stats,
