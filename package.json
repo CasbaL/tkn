@@ -10,7 +10,8 @@
     "artifacts": "napi artifacts",
     "build": "napi build --platform --release --package tkn-core && cp crates/tkn-core/tkn-core.*.node . && tsc",
     "build:debug": "napi build --platform --package tkn-core && cp crates/tkn-core/tkn-core.*.node . && tsc",
-    "tsc": "tsc"
+    "tsc": "tsc",
+    "fetch-models": "npx tsx scripts/fetch-models.ts"
   },
   "napi": {
     "binaryName": "tkn-core",
@@ -22,11 +23,13 @@
   "devDependencies": {
     "@napi-rs/cli": "^3.0.0",
     "@types/node": "^25.6.0",
+    "tsx": "^4.21.0",
     "typescript": "^5.0.0"
   },
   "dependencies": {
     "chalk": "^4.1.2",
     "cli-table3": "^0.6.3",
-    "commander": "^12.0.0"
+    "commander": "^12.0.0",
+    "ora": "^5.4.1"
   }
 }

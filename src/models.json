@@ -1,0 +1,22 @@
+[
+  {
+    "name": "GPT-5.5 Pro",
+    "tokens": 1050000
+  },
+  {
+    "name": "DeepSeek V4 Pro",
+    "tokens": 1048576
+  },
+  {
+    "name": "Gemini 2.5 Pro",
+    "tokens": 1048576
+  },
+  {
+    "name": "Llama 4 Maverick",
+    "tokens": 1048576
+  },
+  {
+    "name": "Claude Opus 4.7",
+    "tokens": 1000000
+  }
+]

@@ -2,6 +2,7 @@
 
 import { resolve } from 'node:path';
 import { Command } from 'commander';
+import ora from 'ora';
 import { loadConfig, mergeConfig } from './config.js';
 import { printJson, printTable } from './output.js';
 import type { ScanOptions } from './types.js';
@@ -62,10 +63,15 @@ program
       includeAll: merged.includeAll,
     };
 
+    const isJson = merged.output === 'json';
+    const spinner = isJson ? null : ora('Scanning files...').start();
+
     const native = loadNative();
     const result = native.scanAndCount(root, scanOptions) as import('./types.js').ScanResult;
 
-    if (merged.output === 'json') {
+    if (spinner) spinner.stop();
+
+    if (isJson) {
       printJson(result);
     } else {
       printTable(result);

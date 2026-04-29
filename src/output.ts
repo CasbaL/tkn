@@ -1,15 +1,7 @@
 import chalk from 'chalk';
 import Table from 'cli-table3';
+import { getContextModels } from './models.js';
 import type { ScanResult } from './types.js';
-
-const CONTEXT_WINDOWS: { name: string; tokens: number }[] = [
-  { name: 'GPT-5.5', tokens: 1_000_000 },
-  { name: 'GPT-5.5 Codex', tokens: 400_000 },
-  { name: 'Claude 4.7 Opus', tokens: 500_000 },
-  { name: 'Gemini 3.1 Pro', tokens: 2_000_000 },
-  { name: 'DeepSeek V4 Pro', tokens: 256_000 },
-  { name: 'Llama 4.0', tokens: 128_000 },
-];
 
 const LARGE_FILE_THRESHOLD = 2000;
 
@@ -135,6 +127,8 @@ export function printTable(result: ScanResult): void {
 }
 
 function printContextCheck(totalTokens: number): void {
+  const models = getContextModels();
+
   console.log(chalk.bold('  Context Check:'));
 
   const table = new Table({
@@ -142,7 +136,7 @@ function printContextCheck(totalTokens: number): void {
     chars: tableChars(),
   });
 
-  for (const model of CONTEXT_WINDOWS) {
+  for (const model of models) {
     const ratio = totalTokens / model.tokens;
     const pct = Math.round(ratio * 100);
     const label = pct > 100 ? chalk.red(`${pct}% 超出`) : `${pct}%`;
