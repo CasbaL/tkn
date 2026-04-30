@@ -3,3 +3,4 @@ dist/
 target/
 *.node
 *.local.json
+.claude/

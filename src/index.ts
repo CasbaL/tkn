@@ -7,12 +7,30 @@ import { loadConfig, mergeConfig } from './config.js';
 import { printJson, printTable } from './output.js';
 import type { ScanOptions } from './types.js';
 
-// Load native binding - try different naming conventions
+// Load native binding
 function loadNative(): { scanAndCount: (root: string, options: ScanOptions) => unknown } {
+  // Try optional dependency packages first (npm published)
+  const platformPackages = [
+    '@casbal/tkn-core-darwin-arm64',
+    '@casbal/tkn-core-darwin-x64',
+    '@casbal/tkn-core-linux-x64-gnu',
+    '@casbal/tkn-core-linux-arm64-gnu',
+    '@casbal/tkn-core-win32-x64-msvc',
+  ];
+  for (const pkg of platformPackages) {
+    try {
+      return require(pkg);
+    } catch {
+      // try next
+    }
+  }
+  // Fall back to local .node file (development)
   const candidates = [
     '../tkn-core.darwin-arm64.node',
     '../tkn-core.darwin-x64.node',
     '../tkn-core.linux-x64-gnu.node',
+    '../tkn-core.linux-arm64-gnu.node',
+    '../tkn-core.win32-x64-msvc.node',
   ];
   for (const candidate of candidates) {
     try {
@@ -21,7 +39,7 @@ function loadNative(): { scanAndCount: (root: string, options: ScanOptions) => u
       // try next
     }
   }
-  throw new Error('Could not load native tkn-core module. Did you run `npm run build`?');
+  throw new Error('Could not load native tkn-core module. Run `npm run build` or install from npm.');
 }
 
 const pkg = require('../package.json') as { version: string };

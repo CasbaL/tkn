@@ -1,23 +1,39 @@
 {
-  "name": "tkn",
+  "name": "@casbal/tkn",
   "version": "0.1.0",
   "description": "Roughly estimate the total token count of a repository",
   "main": "dist/index.js",
   "bin": {
     "tkn": "dist/index.js"
   },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/casbal/tkn.git"
+  },
+  "files": [
+    "dist",
+    "tkn-core.*.node",
+    "src/models.json"
+  ],
   "scripts": {
     "artifacts": "napi artifacts",
     "build": "napi build --platform --release --package tkn-core && cp crates/tkn-core/tkn-core.*.node . && tsc",
     "build:debug": "napi build --platform --package tkn-core && cp crates/tkn-core/tkn-core.*.node . && tsc",
     "tsc": "tsc",
-    "fetch-models": "npx tsx scripts/fetch-models.ts"
+    "fetch-models": "npx tsx scripts/fetch-models.ts",
+    "prepublishOnly": "napi prepublish -t npm",
+    "version": "napi version"
   },
   "napi": {
     "binaryName": "tkn-core",
+    "packageName": "@casbal/tkn-core",
     "targets": [
       "x86_64-apple-darwin",
-      "aarch64-apple-darwin"
+      "aarch64-apple-darwin",
+      "x86_64-unknown-linux-gnu",
+      "aarch64-unknown-linux-gnu",
+      "x86_64-pc-windows-msvc"
     ]
   },
   "devDependencies": {
@@ -31,5 +47,12 @@
     "cli-table3": "^0.6.3",
     "commander": "^12.0.0",
     "ora": "^5.4.1"
+  },
+  "optionalDependencies": {
+    "@casbal/tkn-core-darwin-arm64": "0.1.0",
+    "@casbal/tkn-core-darwin-x64": "0.1.0",
+    "@casbal/tkn-core-linux-x64-gnu": "0.1.0",
+    "@casbal/tkn-core-linux-arm64-gnu": "0.1.0",
+    "@casbal/tkn-core-win32-x64-msvc": "0.1.0"
   }
 }
