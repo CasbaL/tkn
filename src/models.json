@@ -1,7 +1,7 @@
 [
   {
     "name": "Llama 4 Scout",
-    "tokens": 10000000
+    "tokens": 1310720
   },
   {
     "name": "GPT-5.6 Luna Pro",
@@ -16,7 +16,7 @@
     "tokens": 1048576
   },
   {
-    "name": "Claude Opus 4.8 (Fast)",
+    "name": "Claude Opus 5 (Fast)",
     "tokens": 1000000
   }
 ]
