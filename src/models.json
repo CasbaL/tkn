@@ -8,7 +8,7 @@
     "tokens": 1310720
   },
   {
-    "name": "GPT-6 Astra Pro",
+    "name": "GPT-6 Luna Pro",
     "tokens": 1050000
   },
   {
@@ -16,7 +16,7 @@
     "tokens": 1048576
   },
   {
-    "name": "Claude Opus 5",
+    "name": "Claude Opus 5.5",
     "tokens": 1000000
   }
 ]
